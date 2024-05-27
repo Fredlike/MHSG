@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NotAccess</title>
+    <style>
+      body {
+        background-color: black;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        color: white;
+      }
+      .Container {
+        display: grid;
+        place-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="Container">
+      <h2>You do not have access to this website</h2>
+      <h3>IP:</h3>
+      <p id="IpAddress"></p>
+    </div>
+    <script>
+      async function getIpAddress() {
+        try {
+          const response = await fetch("https://api.ipify.org?format=json");
+          const data = await response.json();
+          console.log("Fetched IP:", data.ip);
+          return data.ip;
+        } catch (error) {
+          console.error("Error fetching IP address:", error);
+          return null;
+        }
+      }
+
+      async function getAllowedIps() {
+        try {
+          const response = await fetch(
+            "https://raw.githubusercontent.com/Fredlike/AllowedHMSG/main/allowed_ips.json"
+          );
+          const text = await response.text();
+          console.log("Fetched text:", text);
+
+          // Try to parse JSON
+          const data = JSON.parse(text);
+          console.log("Parsed allowed IPs:", data.allowed_ips);
+          return data.allowed_ips;
+        } catch (error) {
+          console.error("Error fetching allowed IP addresses:", error);
+          return [];
+        }
+      }
+
+      async function checkIpAddress() {
+        const ipText = document.getElementById("IpAddress");
+        const currentIp = await getIpAddress();
+        const allowedIps = await getAllowedIps();
+
+        if (currentIp && allowedIps.includes(currentIp)) {
+          window.location.href = "index.html";
+        } else {
+          ipText.innerHTML = currentIp;
+        }
+      }
+
+      checkIpAddress();
+    </script>
+  </body>
+</html>

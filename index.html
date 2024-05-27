@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MHSG</title>
+
+    <style>
+      body {
+        background-color: black;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        color: white;
+      }
+
+      button {
+        background-color: black;
+        color: aliceblue;
+        outline: 1px white solid;
+        cursor: pointer;
+        border: none;
+        border-radius: 1px;
+      }
+
+      button:hover {
+        background-color: rgb(59, 59, 59);
+        outline: 1.5px white solid;
+      }
+
+      button:active {
+        background-color: rgb(94, 94, 94);
+        outline: 2px white solid;
+      }
+
+      #EnctyptTextDiv,
+      #DenctyptTextDiv {
+        margin-bottom: 10px;
+      }
+
+      .Send {
+        width: 200px;
+        border: 3px solid rgb(255, 255, 255);
+        border-radius: 10px;
+        padding-left: 15px;
+        box-sizing: border-box;
+        padding-bottom: 20px;
+        margin-bottom: 10px;
+      }
+
+      .Recive {
+        width: 200px;
+        border: 3px solid rgb(255, 255, 255);
+        border-radius: 10px;
+        padding-left: 15px;
+        padding-bottom: 20px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+      }
+
+      .ResultSend {
+        border: 3px solid rgb(255, 255, 255);
+        border-radius: 10px;
+        padding-left: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .ResultRecive {
+        border: 3px solid rgb(255, 255, 255);
+        border-radius: 10px;
+        padding-left: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HMSG</h1>
+
+    <div class="Send">
+      <h2>Send:</h2>
+      <div id="EnctyptTextDiv">
+        <p>Message:</p>
+        <input id="EncrypterText" type="text" />
+        <button id="pasteButton">Paste</button>
+        <button id="encryptButton">Encrypt</button>
+      </div>
+      <div id="passwordDiv">
+        <p>Password:</p>
+        <input id="passwordEncrypter" type="password" />
+        <button id="showButtonEncrypt">Show</button>
+      </div>
+    </div>
+
+    <div class="ResultSend">
+      <h3>Result:</h3>
+      <p id="EnctyptResult"></p>
+    </div>
+
+    <div class="Recive">
+      '
+      <h2>Recive:</h2>
+      <div id="DenctyptTextDiv">
+        <p>Message:</p>
+        <input id="DencrypterText" type="text" />
+        <button id="pasteButtonDecrypt">Paste</button>
+        <button id="decryptButton">Decrypt</button>
+      </div>
+      <div id="passwordDivDecrypt">
+        <p>Password:</p>
+        <input id="passwordDencrypter" type="password" />
+        <button id="showButtonDencrypt">Show</button>
+      </div>
+    </div>
+
+    <div class="ResultRecive">
+      <h3>Result:</h3>
+      <p id="DectyptResult"></p>
+    </div>
+
+    <script>
+      const passButtonEncrypt = document.getElementById("showButtonEncrypt");
+      const passButtonDecrypt = document.getElementById("showButtonDencrypt");
+
+      document
+        .getElementById("showButtonEncrypt")
+        .addEventListener("click", function () {
+          const passwordField = document.getElementById("passwordEncrypter");
+          if (passwordField.type === "password") {
+            passwordField.type = "text";
+            passButtonEncrypt.textContent = "Hide";
+          } else {
+            passwordField.type = "password";
+            passButtonEncrypt.textContent = "Show";
+          }
+        });
+
+      document
+        .getElementById("showButtonDencrypt")
+        .addEventListener("click", function () {
+          const passwordField = document.getElementById("passwordDencrypter");
+          if (passwordField.type === "password") {
+            passwordField.type = "text";
+            passButtonDecrypt.textContent = "Hide";
+          } else {
+            passwordField.type = "password";
+            passButtonDecrypt.textContent = "Show";
+          }
+        });
+
+      document
+        .getElementById("pasteButton")
+        .addEventListener("click", function () {
+          navigator.clipboard.readText().then((text) => {
+            document.getElementById("EncrypterText").value = text;
+          });
+        });
+
+      document
+        .getElementById("pasteButtonDecrypt")
+        .addEventListener("click", function () {
+          navigator.clipboard.readText().then((text) => {
+            document.getElementById("DencrypterText").value = text;
+          });
+        });
+
+      document
+        .getElementById("encryptButton")
+        .addEventListener("click", function () {
+          const text = document.getElementById("EncrypterText").value;
+          const password = document.getElementById("passwordEncrypter").value;
+          const encryptedText = encryptText(text, password);
+          document.getElementById("EnctyptResult").innerText = encryptedText;
+        });
+
+      document
+        .getElementById("decryptButton")
+        .addEventListener("click", function () {
+          const text = document.getElementById("DencrypterText").value;
+          const password = document.getElementById("passwordDencrypter").value;
+          const decryptedText = decryptText(text, password);
+          document.getElementById("DectyptResult").innerText = decryptedText;
+        });
+
+      function encryptText(text, password) {
+        const textBytes = new TextEncoder().encode(text);
+        const passwordBytes = new TextEncoder().encode(password);
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const saltedPasswordBytes = new Uint8Array(
+          passwordBytes.length + salt.length
+        );
+
+        saltedPasswordBytes.set(passwordBytes);
+        saltedPasswordBytes.set(salt, passwordBytes.length);
+
+        const encryptedBytes = textBytes.map(
+          (byte, i) =>
+            byte ^ saltedPasswordBytes[i % saltedPasswordBytes.length]
+        );
+        const encryptedWithSalt = new Uint8Array(
+          salt.length + encryptedBytes.length
+        );
+
+        encryptedWithSalt.set(salt);
+        encryptedWithSalt.set(encryptedBytes, salt.length);
+
+        return btoa(String.fromCharCode.apply(null, encryptedWithSalt));
+      }
+
+      function decryptText(encryptedText, password) {
+        const encryptedWithSalt = new Uint8Array(
+          atob(encryptedText)
+            .split("")
+            .map((char) => char.charCodeAt(0))
+        );
+
+        const salt = encryptedWithSalt.slice(0, 16);
+        const encryptedBytes = encryptedWithSalt.slice(16);
+
+        const passwordBytes = new TextEncoder().encode(password);
+        const saltedPasswordBytes = new Uint8Array(
+          passwordBytes.length + salt.length
+        );
+
+        saltedPasswordBytes.set(passwordBytes);
+        saltedPasswordBytes.set(salt, passwordBytes.length);
+
+        const decryptedBytes = encryptedBytes.map(
+          (byte, i) =>
+            byte ^ saltedPasswordBytes[i % saltedPasswordBytes.length]
+        );
+
+        return new TextDecoder().decode(decryptedBytes);
+      }
+
+      async function getIpAddress() {
+        try {
+          const response = await fetch("https://api.ipify.org?format=json");
+          const data = await response.json();
+          console.log("Fetched IP:", data.ip);
+          return data.ip;
+        } catch (error) {
+          console.error("Error fetching IP address:", error);
+          return null;
+        }
+      }
+
+      async function getAllowedIps() {
+        try {
+          const response = await fetch(
+            "https://raw.githubusercontent.com/Fredlike/AllowedHMSG/main/allowed_ips.json"
+          );
+          const text = await response.text();
+          console.log("Fetched text:", text);
+
+          // Try to parse JSON
+          const data = JSON.parse(text);
+          console.log("Parsed allowed IPs:", data.allowed_ips);
+          return data.allowed_ips;
+        } catch (error) {
+          console.error("Error fetching allowed IP addresses:", error);
+          return [];
+        }
+      }
+
+      async function checkIpAddress() {
+        const currentIp = await getIpAddress();
+        const allowedIps = await getAllowedIps();
+
+        if (!currentIp || !allowedIps.includes(currentIp)) {
+          window.location.href = "NotAccess.html";
+        }
+      }
+
+      checkIpAddress();
+      setInterval(checkIpAddress, 1000);
+    </script>
+  </body>
+</html>
